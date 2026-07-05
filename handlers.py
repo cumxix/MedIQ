@@ -1,3 +1,5 @@
+from email import message
+
 from pharmacy_service import find_nearby_pharmacies
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
@@ -21,6 +23,7 @@ router = Router()
 # المستخدمون الذين اختاروا ميزة Drug Interactions
 interaction_users = set()
 reminder_users = {}
+search_users = set()
 
 
 @router.message(CommandStart())
@@ -33,6 +36,9 @@ async def start(message: Message):
 
 @router.message(Command("search"))
 async def search_command(message: Message):
+    reminder_users.pop(message.from_user.id, None)
+    interaction_users.discard(message.from_user.id)
+    search_users.add(message.from_user.id)
     await message.answer("🔍 Please enter the medicine name.")
 
 
@@ -49,6 +55,7 @@ async def about_command(message: Message):
 
 @router.message(lambda message: message.text == "🔍 Search Medicine")
 async def search(message: Message):
+    search_users.add(message.from_user.id)
     await message.answer("🔍 Please enter the medicine name.")
 
 
@@ -172,6 +179,36 @@ async def medicine_search(message: Message):
         return
 
     # ==========================
+    # Search Medicine
+    # ==========================
+    if message.from_user.id in search_users:
+
+        search_users.remove(message.from_user.id)
+
+        medicine = search_medicine(message.text)
+
+        if medicine is None:
+            await message.answer("❌ Medicine not found.")
+            return
+
+        save_history(message.from_user.id, medicine[0])
+
+        await message.answer(
+            f"💊 Brand: {medicine[0]}\n\n"
+            f"🧪 Generic: {medicine[1]}\n\n"
+            f"📌 Uses:\n{medicine[2]}\n\n"
+            f"💉 Dose:\n{medicine[3]}\n\n"
+            f"⚠️ Side Effects:\n{medicine[4]}\n\n"
+            f"🔶 Precautions:\n{medicine[5]}\n\n"
+            f"🚫 Contraindications:\n{medicine[6]}\n\n"
+            f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
+            f"💊 Form: {medicine[8]}\n"
+            f"📏 Strength: {medicine[9]}"
+        )
+
+        return
+
+    # ==========================
     # Medication Reminder
     # ==========================
     if message.from_user.id in reminder_users:
@@ -219,29 +256,3 @@ async def medicine_search(message: Message):
 
         return
     
-    # ==========================
-    # Search Medicine
-    # ==========================
-    medicine = search_medicine(message.text)
-
-    if medicine is None:
-        await message.answer("❌ Medicine not found.")
-        return
-
-    save_history(
-        message.from_user.id,
-        medicine[0]
-    )
-
-    await message.answer(
-        f"💊 Brand: {medicine[0]}\n\n"
-        f"🧪 Generic: {medicine[1]}\n\n"
-        f"📌 Uses:\n{medicine[2]}\n\n"
-        f"💉 Dose:\n{medicine[3]}\n\n"
-        f"⚠️ Side Effects:\n{medicine[4]}\n\n"
-        f"🔶 Precautions:\n{medicine[5]}\n\n"
-        f"🚫 Contraindications:\n{medicine[6]}\n\n"
-        f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
-        f"💊 Form: {medicine[8]}\n"
-        f"📏 Strength: {medicine[9]}"
-    )
