@@ -193,24 +193,37 @@ async def medicine_search(message: Message):
             await message.answer("❌ Medicine not found.")
             return
 
-        medicine = results[0]
-        save_history(message.from_user.id, medicine[0])
+    if len(results) > 1:
 
-        await message.answer(
-            f"💊 Brand: {medicine[0]}\n\n"
-            f"🧪 Generic: {medicine[1]}\n\n"
-            f"📌 Uses:\n{medicine[2]}\n\n"
-            f"💉 Dose:\n{medicine[3]}\n\n"
-            f"⚠️ Side Effects:\n{medicine[4]}\n\n"
-            f"🔶 Precautions:\n{medicine[5]}\n\n"
-            f"🚫 Contraindications:\n{medicine[6]}\n\n"
-            f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
-            f"💊 Form: {medicine[8]}\n"
-            f"📏 Strength: {medicine[9]}"
-        )
+        search_results[message.from_user.id] = results
 
+        text = "🔍 Multiple medicines found:\n\n"
+
+        for i, med in enumerate(results[:10], start=1):
+            text += f"{i}. {med[0]}\n"
+
+        text += "\nReply with the medicine number."
+
+        await message.answer(text)
         return
 
+    medicine = results[0]
+    save_history(message.from_user.id, medicine[0])
+
+    await message.answer(
+        f"💊 Brand: {medicine[0]}\n\n"
+        f"🧪 Generic: {medicine[1]}\n\n"
+        f"📌 Uses:\n{medicine[2]}\n\n"
+        f"💉 Dose:\n{medicine[3]}\n\n"
+        f"⚠️ Side Effects:\n{medicine[4]}\n\n"
+        f"🔶 Precautions:\n{medicine[5]}\n\n"
+        f"🚫 Contraindications:\n{medicine[6]}\n\n"
+        f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
+        f"💊 Form: {medicine[8]}\n"
+        f"📏 Strength: {medicine[9]}"
+    )
+
+    return
     # ==========================
     # Medication Reminder
     # ==========================
