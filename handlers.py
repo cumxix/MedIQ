@@ -46,17 +46,22 @@ async def search_command(message: Message):
     search_users.add(message.from_user.id)
     await message.answer("🔍 Please enter the medicine name.")
 
-
 @router.message(Command("about"))
 async def about_command(message: Message):
-    await message.answer(
+   await message.answer(
     "🤖 MedIQ\n\n"
     "💊 Smart Medicine Assistant\n\n"
-    "Developed by:\n"
+    "✨ Features:\n"
+    "🔍 Search Medicine\n"
+    "📋 Multiple Search Results\n"
+    "💊 Drug Interactions\n"
+    "⏰ Medication Reminder\n"
+    "📍 Nearby Pharmacies\n"
+    "📄 Search History\n\n"
+    "👩‍💻 Developed by:\n"
     "Maryam Hadi\n\n"
-    "Thank you for using MedIQ ❤️"
+    "Thank you for using MedIQ🤍"
 )
-    
 
 @router.message(lambda message: message.text == "🔍 Search Medicine")
 async def search(message: Message):
@@ -113,18 +118,17 @@ async def about(message: Message):
     await message.answer(
         "🤖 MedIQ\n\n"
         "💊 Smart Medicine Assistant\n\n"
-        "Features:\n"
+        "✨ Features:\n"
         "🔍 Search Medicine\n"
+        "📋 Multiple Search Results\n"
         "💊 Drug Interactions\n"
         "⏰ Medication Reminder\n"
         "📍 Nearby Pharmacies\n"
-        "📄 Medicine History\n\n"
-        "Developed by:\n"
+        "📄 Search History\n\n"
+        "👩🏻‍💻 Developed by:\n"
         "Maryam Hadi\n\n"
-        "Thank you for using MedIQ ❤️"
+        "Thank you for using MedIQ🤍"
     )
-
-
 
 @router.message(lambda message: message.location is not None)
 async def receive_location(message: Message):
@@ -153,17 +157,28 @@ async def receive_location(message: Message):
 async def help_command(message: Message):
     await message.answer(
     "📖 MedIQ Help\n\n"
-    "How to use the bot:\n\n"
+    "How to use MedIQ:\n\n"
+
     "🔍 Search Medicine\n"
-    "Search for medicine information.\n\n"
+    "Search by brand name or generic name.\n\n"
+
+    "📋 Multiple Search Results\n"
+    "If more than one medicine is found, choose the number of the medicine you want.\n\n"
+
     "💊 Drug Interactions\n"
-    "Check medicine interactions.\n\n"
+    "Check possible interactions between medicines.\n\n"
+
     "⏰ Medication Reminder\n"
-    "Set reminders for your medicines.\n\n"
+    "Save reminders for your medicines.\n\n"
+
     "📍 Nearby Pharmacies\n"
-    "Find nearby pharmacies.\n\n"
-    "📄 Medicine History\n"
-    "View your previous searches."
+    "Find nearby pharmacies using your location.\n\n"
+
+    "📄 Search History\n"
+    "View your recent medicine searches.\n\n"
+
+    "💡 Tip:\n"
+    "You can search using the full medicine name or part of its name."
 )
 @router.message()
 async def medicine_search(message: Message):
