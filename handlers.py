@@ -28,6 +28,7 @@ interaction_users = set()
 reminder_users = {}
 search_users = set()
 search_results = {}
+waiting_for_selection = set()
 
 
 @router.message(CommandStart())
@@ -181,6 +182,41 @@ async def medicine_search(message: Message):
 
     if message.text in buttons:
         return
+    # ==========================
+    # Multiple Results Selection
+    # ==========================
+    if (
+        message.from_user.id in waiting_for_selection
+        and message.text.isdigit()
+    ):
+        index = int(message.text) - 1
+        results = search_results.get(message.from_user.id, [])
+
+        if index < 0 or index >= len(results):
+            await message.answer("❌ Invalid number. Please choose a number from the list.")
+            return
+
+        medicine = results[index]
+
+        waiting_for_selection.remove(message.from_user.id)
+        search_results.pop(message.from_user.id, None)
+
+        save_history(message.from_user.id, medicine[0])
+
+        await message.answer(
+            f"💊 Brand: {medicine[0]}\n\n"
+            f"🧪 Generic: {medicine[1]}\n\n"
+            f"📌 Uses:\n{medicine[2]}\n\n"
+            f"💉 Dose:\n{medicine[3]}\n\n"
+            f"⚠️ Side Effects:\n{medicine[4]}\n\n"
+            f"🔶 Precautions:\n{medicine[5]}\n\n"
+            f"🚫 Contraindications:\n{medicine[6]}\n\n"
+            f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
+            f"💊 Form: {medicine[8]}\n"
+            f"📏 Strength: {medicine[9]}"
+        )
+
+        return
 
     # ==========================
     # Search Medicine
@@ -196,6 +232,7 @@ async def medicine_search(message: Message):
     if len(results) > 1:
 
         search_results[message.from_user.id] = results
+        waiting_for_selection.add(message.from_user.id)
 
         text = "🔍 Multiple medicines found:\n\n"
 
