@@ -1,4 +1,5 @@
 from email import message
+from unittest import result
 
 from pharmacy_service import find_nearby_pharmacies
 from aiogram import Router
@@ -11,6 +12,7 @@ from keyboards import (
 )
 from database import (
     search_medicine,
+    search_medicines,
     search_interaction,
     save_history,
     get_history,
@@ -20,10 +22,12 @@ from database import (
 
 router = Router()
 
-# المستخدمون الذين اختاروا ميزة Drug Interactions
+#Drug Interactions
+
 interaction_users = set()
 reminder_users = {}
 search_users = set()
+search_results = {}
 
 
 @router.message(CommandStart())
@@ -182,15 +186,14 @@ async def medicine_search(message: Message):
     # Search Medicine
     # ==========================
     if message.from_user.id in search_users:
-
         search_users.remove(message.from_user.id)
+        results = search_medicines(message.text)
 
-        medicine = search_medicine(message.text)
-
-        if medicine is None:
+        if len(results) == 0:
             await message.answer("❌ Medicine not found.")
             return
 
+        medicine = results[0]
         save_history(message.from_user.id, medicine[0])
 
         await message.answer(

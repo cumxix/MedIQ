@@ -212,3 +212,41 @@ def clear_history(user_id):
 
     conn.commit()
     conn.close()
+
+    # ==========================
+# Search Multiple Medicines
+# ==========================
+
+def search_medicines(name):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            b.brand_name,
+            g.generic_name,
+            g.indication,
+            g.dose,
+            g.side_effect,
+            g.precaution,
+            g.contra_indication,
+            g.interaction,
+            b.form,
+            b.strength
+
+        FROM brand b
+        JOIN generic g
+        ON b.generic_id = g.generic_id
+
+        WHERE
+            LOWER(b.brand_name) LIKE LOWER(?)
+            OR LOWER(g.generic_name) LIKE LOWER(?)
+
+        ORDER BY b.brand_name
+    """, (f"%{name}%", f"%{name}%"))
+
+    results = cursor.fetchall()
+
+    conn.close()
+
+    return results
