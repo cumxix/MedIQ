@@ -244,25 +244,24 @@ async def medicine_search(message: Message):
             await message.answer("❌ Medicine not found.")
             return
 
-    if len(results) > 1:
+        if len(results) > 1:
+            search_results[message.from_user.id] = results
+            waiting_for_selection.add(message.from_user.id)
 
-        search_results[message.from_user.id] = results
-        waiting_for_selection.add(message.from_user.id)
+            text = "🔍 Multiple medicines found:\n\n"
 
-        text = "🔍 Multiple medicines found:\n\n"
+            for i, med in enumerate(results[:10], start=1):
+                text += f"{i}. {med[0]}\n"
 
-        for i, med in enumerate(results[:10], start=1):
-            text += f"{i}. {med[0]}\n"
+            text += "\nReply with the medicine number."
 
-        text += "\nReply with the medicine number."
+            await message.answer(text)
+            return
 
-        await message.answer(text)
-        return
+        medicine = results[0]
+        save_history(message.from_user.id, medicine[0])
 
-    medicine = results[0]
-    save_history(message.from_user.id, medicine[0])
-
-    await message.answer(
+        await message.answer(
         f"💊 Brand: {medicine[0]}\n\n"
         f"🧪 Generic: {medicine[1]}\n\n"
         f"📌 Uses:\n{medicine[2]}\n\n"
@@ -275,7 +274,7 @@ async def medicine_search(message: Message):
         f"📏 Strength: {medicine[9]}"
     )
 
-    return
+        return
     # ==========================
     # Medication Reminder
     # ==========================
