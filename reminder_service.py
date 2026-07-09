@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from database import (
     get_active_reminders,
@@ -10,7 +11,9 @@ from database import (
 async def reminder_worker(bot):
     while True:
 
-        current_time = datetime.now().strftime("%H:%M")
+        current_time = datetime.now(
+            ZoneInfo("Asia/Baghdad")
+        ).strftime("%H:%M")
 
         reminders = get_active_reminders()
 
@@ -25,15 +28,17 @@ async def reminder_worker(bot):
 
                 try:
                     await bot.send_message(
-                        user_id,
-                        f"⏰ Medication Reminder\n\n"
-                        f"💊 Medicine: {medicine_name}\n\n"
-                        f"It's time to take your medicine."
+                        chat_id=user_id,
+                        text=(
+                            "⏰ Medication Reminder\n\n"
+                            f"💊 Medicine: {medicine_name}\n\n"
+                            "It's time to take your medicine."
+                        )
                     )
 
                     disable_reminder(reminder_id)
 
                 except Exception as e:
-                    print(e)
+                    print(f"Reminder error: {e}")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(10)
