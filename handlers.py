@@ -29,6 +29,7 @@ reminder_users = {}
 search_users = set()
 search_results = {}
 waiting_for_selection = set()
+clear_history_users = set()
 
 
 @router.message(CommandStart())
@@ -114,12 +115,40 @@ async def history(message: Message):
 
 @router.message(lambda message: message.text == "🗑️ Clear History")
 async def clear_history_handler(message: Message):
+    clear_history_users.add(message.from_user.id)
+
+    await message.answer(
+        "⚠️ Are you sure you want to clear your search history?\n\n"
+        "Type: YES to confirm\n"
+        "Type: NO to cancel"
+    )
+
+@router.message(
+    lambda message:
+    message.from_user.id in clear_history_users
+    and message.text
+    and message.text.upper() == "YES"
+)
+async def confirm_clear_history(message: Message):
+    clear_history_users.remove(message.from_user.id)
     clear_history(message.from_user.id)
 
     await message.answer(
         "✅ Search history cleared successfully."
     )
 
+@router.message(
+    lambda message:
+    message.from_user.id in clear_history_users
+    and message.text
+    and message.text.upper() == "NO"
+)
+async def cancel_clear_history(message: Message):
+    clear_history_users.remove(message.from_user.id)
+
+    await message.answer(
+        "❌ Clear history cancelled."
+    )
 @router.message(lambda message: message.text == "ℹ️ About")
 async def about(message: Message):
     await message.answer(
