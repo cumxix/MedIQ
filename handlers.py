@@ -8,7 +8,8 @@ from aiogram.types import Message
 
 from keyboards import (
     main_keyboard,
-    location_keyboard
+    location_keyboard,
+    favorite_keyboard
 )
 from database import (
     search_medicine,
@@ -17,7 +18,10 @@ from database import (
     save_history,
     get_history,
     save_reminder,
-    clear_history
+    clear_history,
+    add_favorite,
+    get_favorites,
+    remove_favorite
 )
 
 router = Router()
@@ -30,7 +34,7 @@ search_users = set()
 search_results = {}
 waiting_for_selection = set()
 clear_history_users = set()
-
+last_medicine = {}
 
 @router.message(CommandStart())
 async def start(message: Message):
@@ -111,6 +115,23 @@ async def history(message: Message):
         text += f"💊 {medicine_name}\n🕒 {search_time}\n\n"
 
     await message.answer(text)
+
+@router.message(lambda message: message.text == "⭐ Favorite Medicines")
+async def show_favorites(message: Message):
+    favorites = get_favorites(message.from_user.id)
+
+    if not favorites:
+        await message.answer(
+            "⭐ No favorite medicines yet."
+        )
+        return
+
+    text = "⭐ Your Favorite Medicines:\n\n"
+
+    for i, favorite in enumerate(favorites, start=1):
+        text += f"{i}. {favorite[0]}\n"
+
+    await message.answer(text)    
 
 
 @router.message(lambda message: message.text == "🗑️ Clear History")
@@ -215,20 +236,72 @@ async def help_command(message: Message):
 
     "💡 Tip:\n"
     "You can search using the full medicine name or part of its name."
-)
+    )
+
+
+@router.message(lambda message: message.text == "⭐ Add to Favorites")
+async def add_to_favorites(message: Message):
+    medicine_name = last_medicine.get(message.from_user.id)
+
+    if not medicine_name:
+        await message.answer(
+            "❌ Please search for a medicine first."
+        )
+        return
+
+    add_favorite(
+        message.from_user.id,
+        medicine_name
+    )
+
+    await message.answer(
+        f"✅ {medicine_name} added to favorites."
+    )
+
+
+@router.message(lambda message: message.text == "🗑️ Remove from Favorites")
+async def remove_from_favorites(message: Message):
+    medicine_name = last_medicine.get(message.from_user.id)
+
+    if not medicine_name:
+        await message.answer(
+            "❌ Please search for a medicine first."
+        )
+        return
+
+    remove_favorite(
+        message.from_user.id,
+        medicine_name
+    )
+
+    await message.answer(
+        f"✅ {medicine_name} removed from favorites."
+    ) 
+
 @router.message()
-async def medicine_search(message: Message):
+@router.message(lambda message: message.text == "🔙 Main Menu")
+async def back_to_main_menu(message: Message):
+    await message.answer(
+        "🏠Back to Main Menu",
+        reply_markup=main_keyboard
+    )
 
     if message.text and message.text.startswith("/"):
         return
 
     buttons = [
-        "🔍 Search Medicine",
-        "💊 Drug Interactions",
-        "⏰ Medication Reminder",
-        "📍 Nearby Pharmacies",
-        "📄 Medicine History",
-        "ℹ️ About"
+    "🔍 Search Medicine",
+    "💊 Drug Interactions",
+    "⏰ Medication Reminder",
+    "📍 Nearby Pharmacies",
+    "📄 Medicine History",
+    "🗑️ Clear History",
+    "⭐ Favorite Medicines",
+    "⭐ Add to Favorites",
+    "🗑️ Remove from Favorites",
+    "🔙 Main Menu",
+    "ℹ️ About"
+
     ]
 
     if message.text in buttons:
@@ -248,7 +321,7 @@ async def medicine_search(message: Message):
             return
 
         medicine = results[index]
-
+        last_medicine[message.from_user.id] = medicine[0]
         waiting_for_selection.remove(message.from_user.id)
         search_results.pop(message.from_user.id, None)
 
@@ -264,8 +337,10 @@ async def medicine_search(message: Message):
             f"🚫 Contraindications:\n{medicine[6]}\n\n"
             f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
             f"💊 Form: {medicine[8]}\n"
-            f"📏 Strength: {medicine[9]}"
+            f"📏 Strength: {medicine[9]}",
+            reply_markup=favorite_keyboard
         )
+        
 
         return
 
@@ -295,6 +370,7 @@ async def medicine_search(message: Message):
             return
 
         medicine = results[0]
+        last_medicine[message.from_user.id] = medicine[0]
         save_history(message.from_user.id, medicine[0])
 
         await message.answer(
@@ -307,7 +383,9 @@ async def medicine_search(message: Message):
         f"🚫 Contraindications:\n{medicine[6]}\n\n"
         f"🔄 Drug Interactions:\n{medicine[7]}\n\n"
         f"💊 Form: {medicine[8]}\n"
-        f"📏 Strength: {medicine[9]}"
+        f"📏 Strength: {medicine[9]}",
+        reply_markup=favorite_keyboard
+
     )
 
         return

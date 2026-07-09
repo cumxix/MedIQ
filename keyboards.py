@@ -13,7 +13,9 @@ main_keyboard = ReplyKeyboardMarkup(
         [
             KeyboardButton(text="📄 Medicine History"),
             KeyboardButton(text="🗑️ Clear History"),
-         
+        ],
+        [
+            KeyboardButton(text="⭐ Favorite Medicines"),
         ],
         [
             KeyboardButton(text="ℹ️ About"),
@@ -39,4 +41,21 @@ location_keyboard = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
     one_time_keyboard=True
+)
+
+# ==========================
+# Favorite Keyboard
+# ==========================
+
+favorite_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="⭐ Add to Favorites"),
+            KeyboardButton(text="🗑️ Remove from Favorites"),
+        ],
+        [
+            KeyboardButton(text="🔙 Main Menu"),
+        ],
+    ],
+    resize_keyboard=True
 )

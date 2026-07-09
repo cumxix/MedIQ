@@ -250,3 +250,66 @@ def search_medicines(name):
     conn.close()
 
     return results
+
+# ==========================
+# Favorite Medicines
+# ==========================
+
+def create_favorites_table():
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            medicine_name TEXT NOT NULL,
+            UNIQUE(user_id, medicine_name)
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+def add_favorite(user_id, medicine_name):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO favorites (user_id, medicine_name)
+        VALUES (?, ?)
+    """, (user_id, medicine_name))
+
+    conn.commit()
+    conn.close()
+
+
+def get_favorites(user_id):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT medicine_name
+        FROM favorites
+        WHERE user_id = ?
+        ORDER BY medicine_name
+    """, (user_id,))
+
+    favorites = cursor.fetchall()
+
+    conn.close()
+
+    return favorites 
+
+def remove_favorite(user_id, medicine_name):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM favorites
+        WHERE user_id = ?
+        AND medicine_name = ?
+    """, (user_id, medicine_name))
+
+    conn.commit()
+    conn.close()

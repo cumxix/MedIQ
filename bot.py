@@ -8,7 +8,8 @@ from reminder_service import reminder_worker
 
 from database import (
     create_history_table,
-    create_reminder_table
+    create_reminder_table,
+    create_favorites_table
 )
 
 bot = Bot(token=BOT_TOKEN)
@@ -20,6 +21,7 @@ dp.include_router(router)
 async def main():
     create_history_table()
     create_reminder_table()
+    create_favorites_table()
 
     # تشغيل خدمة التذكيرات
     asyncio.create_task(reminder_worker(bot))
