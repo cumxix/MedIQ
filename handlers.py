@@ -112,6 +112,13 @@ async def history(message: Message):
     await message.answer(text)
 
 
+@router.message(lambda message: message.text == "🗑️ Clear History")
+async def clear_history_handler(message: Message):
+    clear_history(message.from_user.id)
+
+    await message.answer(
+        "✅ Search history cleared successfully."
+    )
 
 @router.message(lambda message: message.text == "ℹ️ About")
 async def about(message: Message):
@@ -304,6 +311,8 @@ async def medicine_search(message: Message):
         return
 
     # ==========================
+    # Drug Interactions
+# ==========================
     # Drug Interactions
     # ==========================
     if message.from_user.id in interaction_users:

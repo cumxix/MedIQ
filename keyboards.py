@@ -12,6 +12,7 @@ main_keyboard = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(text="📄 Medicine History"),
+            KeyboardButton(text="🗑️ Clear History"),
          
         ],
         [
