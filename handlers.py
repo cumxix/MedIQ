@@ -290,14 +290,14 @@ async def remove_from_favorites(message: Message):
         f"✅ {medicine_name} removed from favorites."
     ) 
 
-@router.message()
 @router.message(lambda message: message.text == "🔙 Main Menu")
 async def back_to_main_menu(message: Message):
     await message.answer(
         "🏠Back to Main Menu",
         reply_markup=main_keyboard
     )
-
+@router.message()
+async def medicine_search(message: Message):
     if message.text and message.text.startswith("/"):
         return
 
