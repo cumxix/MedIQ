@@ -9,7 +9,8 @@ from reminder_service import reminder_worker
 from database import (
     create_history_table,
     create_reminder_table,
-    create_favorites_table
+    create_favorites_table,
+    create_user_timezones_table
 )
 
 bot = Bot(token=BOT_TOKEN)
@@ -22,8 +23,9 @@ async def main():
     create_history_table()
     create_reminder_table()
     create_favorites_table()
+    create_user_timezones_table()
 
-    # تشغيل خدمة التذكيرات
+    
     asyncio.create_task(reminder_worker(bot))
 
     await dp.start_polling(bot)

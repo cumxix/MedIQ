@@ -313,3 +313,52 @@ def remove_favorite(user_id, medicine_name):
 
     conn.commit()
     conn.close()
+
+# ==========================
+# User Time Zones
+# ==========================
+
+def create_user_timezones_table():
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_timezones (
+            user_id INTEGER PRIMARY KEY,
+            timezone TEXT NOT NULL
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+def save_user_timezone(user_id, timezone):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT OR REPLACE INTO user_timezones (user_id, timezone)
+        VALUES (?, ?)
+    """, (user_id, timezone))
+
+    conn.commit()
+    conn.close()
+
+def get_user_timezone(user_id):
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT timezone
+        FROM user_timezones
+        WHERE user_id = ?
+    """, (user_id,))
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+    if result:
+        return result[0]
+
+    return "Asia/Baghdad"            

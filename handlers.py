@@ -2,6 +2,7 @@ from email import message
 from unittest import result
 
 from pharmacy_service import find_nearby_pharmacies
+from timezonefinder import TimezoneFinder
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
@@ -9,7 +10,8 @@ from aiogram.types import Message
 from keyboards import (
     main_keyboard,
     location_keyboard,
-    favorite_keyboard
+    favorite_keyboard,
+    timezone_location_keyboard
 )
 from database import (
     search_medicine,
@@ -21,10 +23,13 @@ from database import (
     clear_history,
     add_favorite,
     get_favorites,
-    remove_favorite
+    remove_favorite,
+    save_user_timezone,
+    get_user_timezone
 )
 
 router = Router()
+timezone_finder = TimezoneFinder()
 
 #Drug Interactions
 
@@ -35,6 +40,7 @@ search_results = {}
 waiting_for_selection = set()
 clear_history_users = set()
 last_medicine = {}
+timezone_users = set()
 
 @router.message(CommandStart())
 async def start(message: Message):
@@ -61,6 +67,7 @@ async def about_command(message: Message):
         "📋 Multiple Search Results\n"
         "💊 Drug Interactions\n"
         "⏰ Medication Reminder\n"
+        "🌍 Automatic Time Zone\n"
         "📍 Nearby Pharmacies\n"
         "📄 Search History\n"
         "🗑️ Clear History\n"
@@ -181,6 +188,7 @@ async def about(message: Message):
         "📋 Multiple Search Results\n"
         "💊 Drug Interactions\n"
         "⏰ Medication Reminder\n"
+        "🌍 Automatic Time Zone\n"
         "📍 Nearby Pharmacies\n"
         "📄 Search History\n"
         "🗑️ Clear History\n"
@@ -195,11 +203,45 @@ async def receive_location(message: Message):
 
     latitude = message.location.latitude
     longitude = message.location.longitude
+    user_id = message.from_user.id
 
-    pharmacies = find_nearby_pharmacies(latitude, longitude)
+    # Location sent to set the user's time zone
+    if user_id in timezone_users:
+
+        timezone = timezone_finder.timezone_at(
+            lat=latitude,
+            lng=longitude
+        )
+
+        if timezone is None:
+            await message.answer(
+                "❌ Could not detect your time zone. Please try again.",
+                reply_markup=main_keyboard
+            )
+            return
+
+        save_user_timezone(user_id, timezone)
+
+        timezone_users.discard(user_id)
+
+        await message.answer(
+            f"✅ Time zone saved successfully.\n\n"
+            f"🌍 Time zone: {timezone}",
+            reply_markup=main_keyboard
+        )
+        return
+
+    # Location sent to find nearby pharmacies
+    pharmacies = find_nearby_pharmacies(
+        latitude,
+        longitude
+    )
 
     if not pharmacies:
-        await message.answer("❌ No nearby pharmacies found.")
+        await message.answer(
+            "❌ No nearby pharmacies found.",
+            reply_markup=main_keyboard
+        )
         return
 
     text = "📍 Nearby Pharmacies\n\n"
@@ -210,7 +252,10 @@ async def receive_location(message: Message):
             f"🗺️ {pharmacy['link']}\n\n"
         )
 
-    await message.answer(text)
+    await message.answer(
+        text,
+        reply_markup=main_keyboard
+    )
 
 @router.message(Command("help"))
 async def help_command(message: Message):
@@ -229,6 +274,10 @@ async def help_command(message: Message):
 
         "⏰ Medication Reminder\n"
         "Save reminders for your medicines.\n\n"
+
+        "🌍 Automatic Time Zone\n"
+        "Send your location once to set your time zone automatically.\n"
+        "Medication reminders will use your local time.\n\n"
 
         "📍 Nearby Pharmacies\n"
         "Find nearby pharmacies using your location.\n\n"
@@ -296,6 +345,16 @@ async def back_to_main_menu(message: Message):
         "🏠Back to Main Menu",
         reply_markup=main_keyboard
     )
+
+@router.message(lambda message: message.text == "🌍 Time Zone")
+async def choose_timezone(message: Message):
+    timezone_users.add(message.from_user.id)
+
+    await message.answer(
+        "🌍 Please send your location to set your time zone automatically.",
+        reply_markup=timezone_location_keyboard
+    )
+
 @router.message()
 async def medicine_search(message: Message):
     if message.text and message.text.startswith("/"):

@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [
@@ -16,6 +17,7 @@ main_keyboard = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(text="⭐ Favorite Medicines"),
+            KeyboardButton(text="🌍 Time Zone"),
         ],
         [
             KeyboardButton(text="ℹ️ About"),
@@ -43,6 +45,7 @@ location_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
+
 # ==========================
 # Favorite Keyboard
 # ==========================
@@ -59,3 +62,25 @@ favorite_keyboard = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+
+# ==========================
+# Time Zone Location Keyboard
+# ==========================
+
+timezone_location_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(
+                text="📍 Send Location for Time Zone",
+                request_location=True
+            )
+        ],
+        [
+            KeyboardButton(text="🔙 Main Menu"),
+        ],
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
+)
+

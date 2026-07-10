@@ -4,16 +4,13 @@ from zoneinfo import ZoneInfo
 
 from database import (
     get_active_reminders,
-    disable_reminder
+    disable_reminder,
+    get_user_timezone
 )
 
 
 async def reminder_worker(bot):
     while True:
-
-        current_time = datetime.now(
-            ZoneInfo("Asia/Baghdad")
-        ).strftime("%H:%M")
 
         reminders = get_active_reminders()
 
@@ -23,6 +20,19 @@ async def reminder_worker(bot):
             user_id = reminder[1]
             medicine_name = reminder[2]
             reminder_time = reminder[3]
+
+            # Get the user's saved time zone
+            user_timezone = get_user_timezone(user_id)
+
+            try:
+                current_time = datetime.now(
+                    ZoneInfo(user_timezone)
+                ).strftime("%H:%M")
+
+            except Exception:
+                current_time = datetime.now(
+                    ZoneInfo("Asia/Baghdad")
+                ).strftime("%H:%M")
 
             if reminder_time == current_time:
 
